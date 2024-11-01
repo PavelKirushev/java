@@ -1,55 +1,95 @@
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Random;
 
+class DataBuffer{
+    static int n = 5, cnt;
+    static int [] array = new int[n];
 
-public class Main {
-
-
-    public static void main(String[] args) throws ParseException {
-        Scanner scanner = new Scanner(System.in);
-        Map<String, Date> map = new HashMap<>();
-        SimpleDateFormat format = new SimpleDateFormat("dd.MM.yyyy");
-        for(int i = 0; i < 10; i ++){
-            String name = scanner.nextLine();
-            String date = scanner.nextLine();
-            map.put(name, format.parse(date));
+    private void output(){
+        System.out.print("Array: ");
+        for(int i = 0; i < 5; i ++){
+            System.out.print(array[i] + " ");
         }
-        Iterator<Map.Entry<String, Date>> iterator = map.entrySet().iterator();
-        while(iterator.hasNext()){
-            Map.Entry<String, Date> pair = iterator.next();
-            Calendar cal = Calendar.getInstance();
-            cal.setTime(pair.getValue());
-            int m = cal.get(Calendar.MONTH);
-            if (m >= 5 && m <= 7){
-                iterator.remove();
+        System.out.println();
+    }
+
+    public synchronized void add(int value){
+        while(cnt == n){
+            System.out.println("Array is full, wait...");
+            try{
+                wait();
+            }catch(InterruptedException e){
+                Thread.currentThread().interrupt();
             }
         }
-        for(Map.Entry<String, Date> pair: map.entrySet()){
-            System.out.println(pair.getKey() + " " + pair.getValue());
+        array[cnt ++] = value;
+        System.out.println(Thread.currentThread().getName() + " added " + value);
+        output();
+        notify();
+    }
+
+    public synchronized void remove(){
+        while(cnt == 0){
+            System.out.println("Array is empty, wait...");
+            try{
+                wait();
+            }catch(InterruptedException e){
+                Thread.currentThread().interrupt();
+            }
+        }
+        int value = array[cnt - 1];
+        array[--cnt] = 0;
+        System.out.println(Thread.currentThread().getName() + " removed " + value);
+        output();
+        notify();
+    }
+}
+
+class Producer implements Runnable{
+    DataBuffer buffer;
+    Random random = new Random();
+    public Producer(DataBuffer buffer){
+        this.buffer = buffer;
+    }
+
+    @Override
+    public void run() {
+        for(int i = 0; i < 10; i++) {
+            buffer.add(random.nextInt(100));
+            try{
+                Thread.sleep(200);
+            }catch(InterruptedException e){
+                Thread.currentThread().interrupt();
+            }
         }
     }
 }
 
-/*
-Олег Цыганков
-27.09.2005
-Владик
-10.01.2005
-Керил
-05.05.2006
-Артем не помню
-01.01.2001
-Паштет
-19.03.2005
-Мама
-13.03.1985
-Настька
-22.12.2005
-Челик
-13.06.2005
-Челик2
-13.07.2005
-Челик3
-13.08.2005
- */
+class Consumer implements Runnable{
+    DataBuffer buffer;
+    public Consumer(DataBuffer buffer){
+        this.buffer = buffer;
+    }
+
+    @Override
+    public void run() {
+        for(int i = 0; i < 10; i++) {
+            buffer.remove();
+            try{
+                Thread.sleep(500);
+            }catch(InterruptedException e){
+                Thread.currentThread().interrupt();
+            }
+        }
+    }
+}
+
+public class Main {
+    public static void main(String[] args) {
+        DataBuffer buffer = new DataBuffer();
+        Thread producerThread = new Thread(new Producer(buffer));
+        Thread consumerThread = new Thread(new Consumer(buffer));
+
+        producerThread.start();
+        consumerThread.start();
+    }
+}
