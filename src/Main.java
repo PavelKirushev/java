@@ -1,55 +1,42 @@
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
+public class Main{
+    public static void executeOperation(int x, int y, Operationable operationable){
+        System.out.println(operationable.calculate(x, y));
+    }
+    public static void main (String args[]){
+        Map<String, Integer> s1map = new HashMap<String, Integer>();
+        s1map.put("math", 3);
+        s1map.put("geometry", 2);
+        Student s1 = new Student("Олег Цыганков", "Б23-601", 123, s1map);
 
-public class Main {
+        Map<String, Integer> s2map = new HashMap<String, Integer>();
+        s2map.put("math", 5);
+        s2map.put("physic", 4);
+        Student s2 = new Student("Задрот Цыганков", "Б23-602", 123, s2map);
 
+        Map<String, Integer> s3map = new HashMap<String, Integer>();
+        s3map.put("physic", 4);
+        s3map.put("geometry", 5);
+        Student s3 = new Student("Олег Задротов", "Б23-603", 125, s3map);
 
-    public static void main(String[] args) throws ParseException {
-        Scanner scanner = new Scanner(System.in);
-        Map<String, Date> map = new HashMap<>();
-        SimpleDateFormat format = new SimpleDateFormat("dd.MM.yyyy");
-        for(int i = 0; i < 10; i ++){
-            String name = scanner.nextLine();
-            String date = scanner.nextLine();
-            map.put(name, format.parse(date));
-        }
-        Iterator<Map.Entry<String, Date>> iterator = map.entrySet().iterator();
-        while(iterator.hasNext()){
-            Map.Entry<String, Date> pair = iterator.next();
-            Calendar cal = Calendar.getInstance();
-            cal.setTime(pair.getValue());
-            int m = cal.get(Calendar.MONTH);
-            if (m >= 5 && m <= 7){
-                iterator.remove();
-            }
-        }
-        for(Map.Entry<String, Date> pair: map.entrySet()){
-            System.out.println(pair.getKey() + " " + pair.getValue());
-        }
+        ListOfStudent list = new ListOfStudent();
+        list.add(s1);
+        list.add(s2);
+        list.add(s3);
+
+        list.printStudents(123);
+        list.delete();
+
+        list.printStudents(123);
     }
 }
 
-/*
-Олег Цыганков
-27.09.2005
-Владик
-10.01.2005
-Керил
-05.05.2006
-Артем не помню
-01.01.2001
-Паштет
-19.03.2005
-Мама
-13.03.1985
-Настька
-22.12.2005
-Челик
-13.06.2005
-Челик2
-13.07.2005
-Челик3
-13.08.2005
- */
+interface Operationable{
+    int calculate(int x, int y);
+}
+
+interface Predicate{
+    boolean check(int x);
+}
